@@ -33,82 +33,102 @@ class _ChatState extends State<Chat> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Chat"),
+        title: Text("Chat as ${provider.username}"),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(25),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            const Text("Enter your friend's name (receiver):"),
-            const SizedBox(height: 10),
             TextFormField(
               controller: toController,
               decoration: InputDecoration(
-                hintText: "Enter receiver's name",
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
+                labelText: "Receiver's name",
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
               ),
             ),
-            const SizedBox(height: 16),
-            const Text("Type your message:"),
-            const SizedBox(height: 10),
-            TextFormField(
-              controller: messageController,
-              decoration: InputDecoration(
-                hintText: "Enter message",
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                final to = toController.text.trim();
-                final msg = messageController.text.trim();
-
-                if (to.isNotEmpty && msg.isNotEmpty) {
-                  provider.sendMessage(to, msg);
-                  messageController.clear();
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Please fill both fields")),
-                  );
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    const Color.fromARGB(255, 38, 166, 130).withOpacity(0.9),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              ),
-              child: const Text("Send Message"),
-            ),
-            const SizedBox(height: 30),
-            const Divider(),
-            const Text(
-              "Messages",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-            ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             Expanded(
-              child: ListView.builder(
-                itemCount: provider.messages.length,
-                itemBuilder: (context, index) {
-                  final msg = provider.messages[index];
-                  return ListTile(
-                    title: Text("${msg["from"]} ➤ ${msg["to"]}"),
-                    subtitle: Text(msg["message"]),
-                    trailing: Text(
-                      msg["timestamp"] != null
-                          ? msg["timestamp"].toString().substring(11, 19)
-                          : "--:--",
-                      style: const TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
-                  );
-                },
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: ListView.builder(
+                  itemCount: provider.messages.length,
+                  itemBuilder: (context, index) {
+                    final msg = provider.messages[index];
+                    final isMe = msg["from"] == provider.username;
+
+                    return Align(
+                      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        padding: const EdgeInsets.all(12),
+                        constraints: BoxConstraints(
+                          maxWidth: MediaQuery.of(context).size.width * 0.75,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isMe ? Colors.teal[100] : Colors.grey[300],
+                          borderRadius: BorderRadius.only(
+                            topLeft: const Radius.circular(12),
+                            topRight: const Radius.circular(12),
+                            bottomLeft: Radius.circular(isMe ? 12 : 0),
+                            bottomRight: Radius.circular(isMe ? 0 : 12),
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              msg["message"] ?? "",
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                            const SizedBox(height: 4),
+                            if (msg["timestamp"] != null)
+                              Text(
+                                msg["timestamp"].toString().substring(11, 19),
+                                style: const TextStyle(fontSize: 11, color: Colors.grey),
+                              ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: messageController,
+                    decoration: InputDecoration(
+                      hintText: "Type your message...",
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: () {
+                    final to = toController.text.trim();
+                    final msg = messageController.text.trim();
+
+                    if (to.isNotEmpty && msg.isNotEmpty) {
+                      provider.sendMessage(to, msg);
+                      messageController.clear();
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Please fill both fields")),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.teal,
+                    padding: const EdgeInsets.all(16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: const Icon(Icons.send, color: Colors.white),
+                ),
+              ],
             ),
           ],
         ),
